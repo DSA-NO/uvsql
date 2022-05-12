@@ -39,7 +39,8 @@ create table station(
 	ftp_password nvarchar(50) default null,
 	ftp_remote_dir nvarchar(200) default null,
 	ftp_local_dir nvarchar(200) default null,
-	comment nvarchar(1000) default null
+	comment nvarchar(1000) default null,
+	ftp_passive_mode bit default 1 not null
 )
 go
 
