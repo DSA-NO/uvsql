@@ -37,7 +37,8 @@ create proc insert_station
 	@ftp_password nvarchar(50),
 	@ftp_remote_dir nvarchar(200),
 	@ftp_local_dir nvarchar(200),
-	@comment nvarchar(1000)
+	@comment nvarchar(1000),
+	@ftp_passive_mode bit
 as 
 	insert into station values (
 		@label,
@@ -49,7 +50,8 @@ as
 		@ftp_password,
 		@ftp_remote_dir,
 		@ftp_local_dir,
-		@comment
+		@comment,
+		@ftp_passive_mode
 	);
 go
 
@@ -67,7 +69,8 @@ create proc update_station
 	@ftp_password nvarchar(50),
 	@ftp_remote_dir nvarchar(200),
 	@ftp_local_dir nvarchar(200),
-	@comment nvarchar(1000)
+	@comment nvarchar(1000),
+	@ftp_passive_mode bit
 as 
 	update station set 
 		label = @label,				
@@ -79,7 +82,8 @@ as
 		ftp_password = @ftp_password,
 		ftp_remote_dir = @ftp_remote_dir,
 		ftp_local_dir = @ftp_local_dir,
-		comment = @comment
+		comment = @comment,
+		ftp_passive_mode = @ftp_passive_mode
 	where id = @id
 go
 
