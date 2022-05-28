@@ -108,7 +108,8 @@ as
 		ftp_user,
 		ftp_password,
 		ftp_remote_dir,
-		ftp_local_dir		
+		ftp_local_dir,
+		ftp_passive_mode
 	from station
 	where active = 1
 go
