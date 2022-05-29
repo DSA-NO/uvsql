@@ -277,7 +277,7 @@ as
 			set @dt = CAST(@measurement_date AS date)
 
 			if not exists(select 1 from guvparam where station_id = @station_id and instrument_id = @instrument_id and measurement_date = @dt)
-				exec insert_guvparam2 @station_id, @instrument_id, @dt, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL;
+				exec insert_guvparam2 @station_id, @instrument_id, @dt, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0;
 		end
 	else
 		begin
@@ -507,121 +507,67 @@ create  PROCEDURE cie_min2
    @fra_datotid datetime,
    @til_datotid datetime
 AS       
-	DECLARE @instrument_id int
-	DECLARE @stasjon_id int
-
+	DECLARE @station_id int
+	SELECT @station_id = id FROM station WHERE label = @station_name
+			 
 	DECLARE @factortype_id int
-	SELECT @factortype_id = id FROM factortype WHERE label = 'cie'
-    
-   SELECT @instrument_id = p.instrument_id, @stasjon_id = s.id
-   FROM station AS s, guvparam  AS p
-   WHERE 
-      s.label = @stasjon AND 
-      s.id = p.station_id AND 
-      p.measurement_date BETWEEN CONVERT(char(12), @fra_datotid, 103) AND CONVERT(char(12), @til_datotid,103)
-   SELECT 
-      CONVERT(char(2), (datepart(dd, m.measurement_date)), 3)
-       + 
-      ' '
-       + 
-      CONVERT(char(2), (datepart(mm, m.measurement_date)), 3)
-       + 
-      ' '
-       + 
-      CONVERT(char(4), (datepart(yy, m.measurement_date)), 100)
-       + 
-      ' ' 
-       + 
-      CONVERT(char(2), (datepart(hh, m.measurement_date)), 3)
-       + 
-      ' '
-       + 
-      CONVERT(char(2), (datepart(mi, m.measurement_date)), 3) AS 'Datotid', ((m.e305 - p.o305) / p.d305) * f.cie305 + ((m.e313 - p.o313) / p.d313) * f.cie313 + ((m.e320 - p.o320) / p.d320) * f.cie320 + ((m.e340 - p.o340) / p.d340) * f.cie340 + ((m.e380 - p.o380) / p.d380) * f.cie380 AS 'Cie'
-   FROM dbo.measurement  AS m, dbo.guvfactor AS f, dbo.guvparam  AS p
-   WHERE 
-      m.measurement_date > @fra_datotid AND 
-      m.measurement_date < @til_datotid AND 
-      p.measurement_date > dateadd(hh, -24, @fra_datotid) AND 
-      p.measurement_date <= @fra_datotid AND 
-      m.station_id = @stasjon_id AND 
-      p.station_id = @stasjon_id AND 
-      f.factortype_id = @factortype_id AND f.valid_from <= m.measurement_date and f.valid_to > m.measurement_date and
-      f.instrument_id = @instrument_id AND 
-      m.instrument_id = @instrument_id AND 
-      p.instrument_id = @instrument_id
+	SELECT @factortype_id = id FROM dbo.factortype WHERE label = @factortype
+
+	SELECT 
+		@station_name AS 'Stasjon', 
+		CONVERT(varchar, m.measurement_date, 120) AS 'Datotid', 
+		m.instrument_id AS 'Inst_id', 
+		((m.e305 - p.o305) / p.d305) * f.cie305 + 
+		((m.e313 - p.o313) / p.d313) * f.cie313 + 
+		((m.e320 - p.o320) / p.d320) * f.cie320 + 
+		((m.e340 - p.o340) / p.d340) * f.cie340 + 
+		((m.e380 - p.o380) / p.d380) * f.cie380 +
+		((m.e395 - p.o395) / p.d395) * f.cie395 +
+		((m.e412 - p.o412) / p.d412) * f.cie412 +
+		((m.e443 - p.o443) / p.d443) * f.cie443 +
+		((m.e490 - p.o490) / p.d490) * f.cie490 +
+		((m.e532 - p.o532) / p.d532) * f.cie532 +
+		((m.e555 - p.o555) / p.d555) * f.cie555 +
+		((m.e665 - p.o665) / p.d665) * f.cie665 +
+		((m.e780 - p.o780) / p.d780) * f.cie780 +
+		((m.e875 - p.o875) / p.d875) * f.cie875 +
+		((m.e940 - p.o940) / p.d940) * f.cie940 +
+		((m.e1020 - p.o1020) / p.d1020) * f.cie1020 +
+		((m.e1245 - p.o1245) / p.d1245) * f.cie1245 +
+		((m.e1640 - p.o1640) / p.d1640) * f.cie1640 +
+		((m.par - p.opar) / p.dpar) * f.par AS 'Cie', 
+		(m.e305 - p.o305) / p.d305 AS 'e305', 
+		(m.e313 - p.o313) / p.d313 AS 'e313', 
+		(m.e320 - p.o320) / p.d320 AS 'e320', 
+		(m.e340 - p.o340) / p.d340 AS 'e340', 
+		(m.e380 - p.o380) / p.d380 AS 'e380',
+		(m.e395 - p.o395) / p.d395 AS 'e395',
+		(m.e412 - p.o412) / p.d412 AS 'e412',
+		(m.e443 - p.o443) / p.d443 AS 'e443',
+		(m.e490 - p.o490) / p.d490 AS 'e490',
+		(m.e532 - p.o532) / p.d532 AS 'e532',
+		(m.e555 - p.o555) / p.d555 AS 'e555',
+		(m.e665 - p.o665) / p.d665 AS 'e665',
+		(m.e780 - p.o780) / p.d780 AS 'e780',
+		(m.e875 - p.o875) / p.d875 AS 'e875',
+		(m.e940 - p.o940) / p.d940 AS 'e940',
+		(m.e1020 - p.o1020) / p.d1020 AS 'e1020',
+		(m.e1245 - p.o1245) / p.d1245 AS 'e1245',
+		(m.e1640 - p.o1640) / p.d1640 AS 'e1640',
+		(m.par - p.opar) / p.dpar AS 'par',
+		p.measurement_date AS 'ParamDato'	
+	FROM
+		dbo.measurement as m, 
+		dbo.guvfactor as f, 
+		dbo.guvparam as p
+	WHERE 
+		m.measurement_date >= @date_from AND 
+		m.measurement_date < @date_to AND
+		CAST(m.measurement_date AS date) = CAST(p.measurement_date AS date) AND
+		m.station_id = @station_id AND 
+		m.principal = 1 AND
+		p.station_id = @station_id AND
+		f.instrument_id = m.instrument_id AND
+		f.factortype_id = @factortype_id AND f.valid_from <= m.measurement_date and f.valid_to > m.measurement_date and
+		p.instrument_id = m.instrument_id
 	order by m.measurement_date asc
-go
-
-DROP PROCEDURE IF EXISTS ch_min2;
-GO  
-
-create procedure ch_min2
-    @station_name nvarchar(50),
-	@factortype nvarchar(32),
-    @date_from datetime,
-    @date_to datetime
-as 
-   
-DECLARE @station_id int
-SELECT @station_id = id FROM station WHERE label = @station_name
-         
-DECLARE @factortype_id int
-SELECT @factortype_id = id FROM dbo.factortype WHERE label = @factortype
-
-SELECT 
-	@station_name AS 'Stasjon', 
-	CONVERT(varchar, m.measurement_date, 120) AS 'Datotid', 
-	m.instrument_id AS 'Inst_id', 
-	((m.e305 - p.o305) / p.d305) * f.cie305 + 
-	((m.e313 - p.o313) / p.d313) * f.cie313 + 
-	((m.e320 - p.o320) / p.d320) * f.cie320 + 
-	((m.e340 - p.o340) / p.d340) * f.cie340 + 
-	((m.e380 - p.o380) / p.d380) * f.cie380 +
-	((m.e395 - p.o395) / p.d395) * f.cie395 +
-	((m.e412 - p.o412) / p.d412) * f.cie412 +
-	((m.e443 - p.o443) / p.d443) * f.cie443 +
-	((m.e490 - p.o490) / p.d490) * f.cie490 +
-	((m.e532 - p.o532) / p.d532) * f.cie532 +
-	((m.e555 - p.o555) / p.d555) * f.cie555 +
-	((m.e665 - p.o665) / p.d665) * f.cie665 +
-	((m.e780 - p.o780) / p.d780) * f.cie780 +
-	((m.e875 - p.o875) / p.d875) * f.cie875 +
-	((m.e940 - p.o940) / p.d940) * f.cie940 +
-	((m.e1020 - p.o1020) / p.d1020) * f.cie1020 +
-	((m.e1245 - p.o1245) / p.d1245) * f.cie1245 +
-	((m.e1640 - p.o1640) / p.d1640) * f.cie1640 AS 'Cie', 
-	(m.e305 - p.o305) / p.d305 AS 'e305', 
-	(m.e313 - p.o313) / p.d313 AS 'e313', 
-	(m.e320 - p.o320) / p.d320 AS 'e320', 
-	(m.e340 - p.o340) / p.d340 AS 'e340', 
-	(m.e380 - p.o380) / p.d380 AS 'e380',
-	(m.e395 - p.o395) / p.d395 AS 'e395',
-	(m.e412 - p.o412) / p.d412 AS 'e412',
-	(m.e443 - p.o443) / p.d443 AS 'e443',
-	(m.e490 - p.o490) / p.d490 AS 'e490',
-	(m.e532 - p.o532) / p.d532 AS 'e532',
-	(m.e555 - p.o555) / p.d555 AS 'e555',
-	(m.e665 - p.o665) / p.d665 AS 'e665',
-	(m.e780 - p.o780) / p.d780 AS 'e780',
-	(m.e875 - p.o875) / p.d875 AS 'e875',
-	(m.e940 - p.o940) / p.d940 AS 'e940',
-	(m.e1020 - p.o1020) / p.d1020 AS 'e1020',
-	(m.e1245 - p.o1245) / p.d1245 AS 'e1245',
-	(m.e1640 - p.o1640) / p.d1640 AS 'e1640',
-	p.measurement_date AS 'ParamDato'	
-FROM
-	dbo.measurement as m, 
-	dbo.guvfactor as f, 
-	dbo.guvparam as p
-WHERE 
-	m.measurement_date >= @date_from AND 
-	m.measurement_date < @date_to AND
-	CAST(m.measurement_date AS date) = CAST(p.measurement_date AS date) AND
-	m.station_id = @station_id AND 
-	m.principal = 1 AND
-	p.station_id = @station_id AND
-	f.instrument_id = m.instrument_id AND
-	f.factortype_id = @factortype_id AND f.valid_from <= m.measurement_date and f.valid_to > m.measurement_date and
-	p.instrument_id = m.instrument_id
-order by m.measurement_date asc
-go 
