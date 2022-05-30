@@ -507,6 +507,62 @@ create  PROCEDURE cie_min2
    @fra_datotid datetime,
    @til_datotid datetime
 AS       
+DECLARE @instrument_id int
+	DECLARE @stasjon_id int
+
+	DECLARE @factortype_id int
+	SELECT @factortype_id = id FROM factortype WHERE label = 'cie'
+    
+   SELECT @instrument_id = p.instrument_id, @stasjon_id = s.id
+   FROM station AS s, guvparam  AS p
+   WHERE 
+      s.label = @stasjon AND 
+      s.id = p.station_id AND 
+      p.measurement_date BETWEEN CONVERT(char(12), @fra_datotid, 103) AND CONVERT(char(12), @til_datotid,103)
+   SELECT 
+      CONVERT(char(2), (datepart(dd, m.measurement_date)), 3)
+       + 
+      ' '
+       + 
+      CONVERT(char(2), (datepart(mm, m.measurement_date)), 3)
+       + 
+      ' '
+       + 
+      CONVERT(char(4), (datepart(yy, m.measurement_date)), 100)
+       + 
+      ' ' 
+       + 
+      CONVERT(char(2), (datepart(hh, m.measurement_date)), 3)
+       + 
+      ' '
+       + 
+      CONVERT(char(2), (datepart(mi, m.measurement_date)), 3) AS 'Datotid', ((m.e305 - p.o305) / p.d305) * f.cie305 + ((m.e313 - p.o313) / p.d313) * f.cie313 + ((m.e320 - p.o320) / p.d320) * f.cie320 + ((m.e340 - p.o340) / p.d340) * f.cie340 + ((m.e380 - p.o380) / p.d380) * f.cie380 AS 'Cie'
+   FROM dbo.measurement  AS m, dbo.guvfactor AS f, dbo.guvparam  AS p
+   WHERE 
+      m.measurement_date > @fra_datotid AND 
+      m.measurement_date < @til_datotid AND 
+      p.measurement_date > dateadd(hh, -24, @fra_datotid) AND 
+      p.measurement_date <= @fra_datotid AND 
+      m.station_id = @stasjon_id AND 
+      p.station_id = @stasjon_id AND 
+      f.factortype_id = @factortype_id AND f.valid_from <= m.measurement_date and f.valid_to > m.measurement_date and
+      f.instrument_id = @instrument_id AND 
+      m.instrument_id = @instrument_id AND 
+      p.instrument_id = @instrument_id
+	order by m.measurement_date asc
+go
+
+
+
+DROP PROCEDURE IF EXISTS ch_min2;
+GO  
+
+create procedure ch_min2
+    @station_name nvarchar(50),
+	@factortype nvarchar(32),
+    @date_from datetime,
+    @date_to datetime
+as 
 	DECLARE @station_id int
 	SELECT @station_id = id FROM station WHERE label = @station_name
 			 
