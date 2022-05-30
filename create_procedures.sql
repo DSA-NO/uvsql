@@ -560,19 +560,19 @@ GO
 create procedure ch_min2
     @station_name nvarchar(50),
 	@factortype nvarchar(32),
-    @date_from datetime,
-    @date_to datetime
+    @date_from datetime2,
+    @date_to datetime2
 as 
 	DECLARE @station_id int
 	SELECT @station_id = id FROM station WHERE label = @station_name
 			 
 	DECLARE @factortype_id int
-	SELECT @factortype_id = id FROM dbo.factortype WHERE label = @factortype
+	SELECT @factortype_id = id FROM factortype WHERE label = @factortype
 
 	SELECT 
-		@station_name AS 'Stasjon', 
-		CONVERT(varchar, m.measurement_date, 120) AS 'Datotid', 
-		m.instrument_id AS 'Inst_id', 
+		@station_name AS 'station', 
+		CONVERT(varchar, m.measurement_date, 120) AS 'meas_date', 
+		m.instrument_id AS 'instrument', 
 		((m.e305 - p.o305) / p.d305) * f.cie305 + 
 		((m.e313 - p.o313) / p.d313) * f.cie313 + 
 		((m.e320 - p.o320) / p.d320) * f.cie320 + 
@@ -591,7 +591,7 @@ as
 		((m.e1020 - p.o1020) / p.d1020) * f.cie1020 +
 		((m.e1245 - p.o1245) / p.d1245) * f.cie1245 +
 		((m.e1640 - p.o1640) / p.d1640) * f.cie1640 +
-		((m.par - p.opar) / p.dpar) * f.par AS 'Cie', 
+		((m.par - p.opar) / p.dpar) * f.par AS 'sum', 
 		(m.e305 - p.o305) / p.d305 AS 'e305', 
 		(m.e313 - p.o313) / p.d313 AS 'e313', 
 		(m.e320 - p.o320) / p.d320 AS 'e320', 
@@ -611,7 +611,8 @@ as
 		(m.e1245 - p.o1245) / p.d1245 AS 'e1245',
 		(m.e1640 - p.o1640) / p.d1640 AS 'e1640',
 		(m.par - p.opar) / p.dpar AS 'par',
-		p.measurement_date AS 'ParamDato'	
+		p.measurement_date AS 'param_date',
+		f.valid_from AS 'factor_date'	
 	FROM
 		dbo.measurement as m, 
 		dbo.guvfactor as f, 
