@@ -630,10 +630,10 @@ as
 		p.instrument_id = m.instrument_id
 	order by m.measurement_date asc
 
+
+
 DROP PROCEDURE IF EXISTS ch_min3;
 GO  
-
-
 
 create procedure ch_min3
     @station_name nvarchar(50),
@@ -707,5 +707,5 @@ as
 		f.instrument_id = m.instrument_id AND
 		f.factortype_id = @factortype_id AND f.valid_from <= m.measurement_date and f.valid_to > m.measurement_date and
 		p.instrument_id = m.instrument_id and
-		i.channel_count = @channel_count
+		i.id = m.instrument_id and i.channel_count = @channel_count
 	order by m.measurement_date asc
