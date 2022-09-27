@@ -202,6 +202,7 @@ as
 		i.label as 'instrument_name', 
 		i.station_id as 'station_id', 
 		i.principal, 
+		i.channel_count,
 		i.fetch_module, 
 		i.validate_module, 
 		i.store_module, 
